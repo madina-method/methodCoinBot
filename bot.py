@@ -1,38 +1,42 @@
-import config
+#import config
 import time
 import telebot
 from telebot import types
-import db
+#import db
 #from telebot.types import ShippingOption
 import datetime
 import math
 import requests as r
 
-bot = telebot.TeleBot(config.token)
-
+bot = telebot.TeleBot("522023702:AAFNNOLXYIId_GN78AW7i3NPUytD-ghTT3k")
+username = ""
 main_buttons = ['Мои монеты', 'Присвоить монету', 'Красавчики']
 karmas = ['+1', '-1']
-names = ["Samat", "Yerdos", "Bota", "Alibek", "Aigerim", "Aruzhan", "Madina", "Gaziza", "Aidana", "Anel"]
+names = ["Samat", "Yerdos", "Bota", "Alibek", "Aigerim", "Aruzhan", "Madina", "Gaziza", "Aidana"]
+nicknames = ["isamat", "Yoridosu", "Bota13", "alibek2017", "zhunussova", "Aru071", "madina_tj", "ga3iza", "AidLeps"]
+newnames = []
 ids = []
 coins = []
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    global username
+    username = message.chat.username
     welcome_msg = "Привет, *{0}*. Что будем делать? ".format(message.chat.first_name)
     bot.send_message(message.chat.id, welcome_msg, reply_markup=create_keyboard(words=main_buttons,width=1), parse_mode='markdown')
-    username = message.chat.username
+    
 
    
 @bot.message_handler(content_types=['text'])
 def handle_message(message):
-    
+    global username
+    username = message.chat.username
+    chat_id = message.chat.id
     if message.text == "Мои монеты":
         
         #welcome_msg = "Введи свой ID: ".format(message.chat.first_name)
         #msg = bot.send_message(message.chat.id, welcome_msg)
         #bot.register_next_step_handler(msg, myCoins)
-        username = message.chat.username
-        chat_id = message.chat.id
         myCoins(username, chat_id)
     elif message.text == "Присвоить монету":
         welcome_msg = "Берем или Отбираем?"
@@ -57,6 +61,21 @@ def handle_message(message):
 
             msg = bot.send_message(message.chat.id, welcome_msg, reply_markup=create_keyboard(words=main_buttons, width=2), parse_mode='markdown')
 
+def karmaDef(message):
+    global username
+    for i in range(len(names)):
+        if nicknames[i] != username:
+            newnames.append(names[i])
+    welcome_msg = "Выбери коллегу: ".format(message.chat.first_name)
+    msg = bot.send_message(message.chat.id, welcome_msg, reply_markup=create_keyboard(words=newnames, width=2), parse_mode='markdown')
+
+    if message.text == "+1":
+        bot.register_next_step_handler(msg, giveCoin)
+    elif message.text == "-1":
+        bot.register_next_step_handler(msg, getCoin)
+
+
+
 def myCoins(username, chat_id):    
         found = False
         ids, coins= getDb()
@@ -72,21 +91,13 @@ def myCoins(username, chat_id):
         #if not found:
             #bot.send_message(message.chat.id, "Упс, кажется неправильный ID. \nНажмите заново 'Мои монеты'.")   
 
-def karmaDef(message):
-    welcome_msg = "Выбери коллегу: ".format(message.chat.first_name)
-    msg = bot.send_message(message.chat.id, welcome_msg, reply_markup=create_keyboard(words=names, width=2), parse_mode='markdown')
-
-    if message.text == "+1":
-        bot.register_next_step_handler(msg, giveCoin)
-    elif message.text == "-1":
-        bot.register_next_step_handler(msg, getCoin)
 
 def giveCoin(message):
-    username = message.text
-    findDb("plus", username, message.chat.id)
+    username2 = message.text
+    findDb("plus", username2, message.chat.id)
 def getCoin(message):
-    username = message.text
-    findDb("minus", username, message.chat.id)
+    username2 = message.text
+    findDb("minus", username2, message.chat.id)
     
 
 def create_keyboard(words=None, width=None, isOneTime=False, isPhone=False):
@@ -113,8 +124,7 @@ def getDb():
 
 def findDb(sign, username, chat_id): 
     link = ""
-    welcome_msg = ""
-    
+    welcome_msg = ""   
     if sign == "plus":
         link = "http://madina.mthd.kz/update_teen.php?username="+username  
         welcome_msg = "Какие мы добрые сегодня =)"   
